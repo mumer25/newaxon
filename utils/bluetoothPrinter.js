@@ -189,14 +189,39 @@ class BluetoothThermalPrinter {
   }
 
   // Print receipt
-  async printReceipt(data) {
+ // ... (keep your existing class structure and permissions)
+
+  async printReceipt(data, companyLogoBase64) {
     if (!this.isConnected) throw new Error("Printer not connected");
     if (!ThermalPrinter) throw new Error("Bluetooth module not available");
 
     try {
+      // 1. TOP LOGO (Mirroring PDF)
+      if (companyLogoBase64 && typeof ThermalPrinter.printImageBase64 === "function") {
+        await ThermalPrinter.printImageBase64(companyLogoBase64, { width: 130, height: 40 });
+      } else {
+        await ThermalPrinter.printText("<C><B>AXON ERP</B></B>\n");
+      }
+
+      // 2. RECEIPT BODY (Aligned with PDF Layout)
       const receiptText = this.formatReceiptFor58mm(data);
       await ThermalPrinter.printText(receiptText);
-      await ThermalPrinter.printText("\n\n\n"); // spacing
+
+      // 3. BOTTOM BARCODE (Mirroring PDF)
+      if (data.invoiceNo && data.invoiceNo !== "N/A") {
+        if (typeof ThermalPrinter.printBarcode === "function") {
+          try {
+            // Type 73 is CODE128 (matches your PDF barcodeUrl)
+            await ThermalPrinter.printBarcode(data.invoiceNo, 73, 2, 60, 2, 1);
+          } catch (e) {
+            await ThermalPrinter.printText(`<C>${data.invoiceNo}</C>\n`);
+          }
+        } else {
+          await ThermalPrinter.printText(`<C>${data.invoiceNo}</C>\n`);
+        }
+      }
+
+      await ThermalPrinter.printText("\n\n\n"); 
       return true;
     } catch (error) {
       console.error("Print error:", error);
@@ -204,10 +229,10 @@ class BluetoothThermalPrinter {
     }
   }
 
-  // Format receipt (58mm)
   formatReceiptFor58mm(data) {
     const {
-      header,
+      companyAddress,
+      companyNTN,
       invoiceNo,
       dateTime,
       customerName,
@@ -218,49 +243,72 @@ class BluetoothThermalPrinter {
       tax,
       discount,
       total,
-      footer,
     } = data;
 
     const LINE_WIDTH = 32;
-    const SEPARATOR = "=".repeat(LINE_WIDTH);
     const DASH = "-".repeat(LINE_WIDTH);
 
     let receipt = "";
 
-    if (header) receipt += this.centerText(header, LINE_WIDTH) + "\n" + SEPARATOR + "\n";
-
-    receipt += this.leftAlignText(`Invoice: ${invoiceNo}`, LINE_WIDTH) + "\n";
-    receipt += this.leftAlignText(`Date: ${dateTime}`, LINE_WIDTH) + "\n";
-    if (cashierName) receipt += this.leftAlignText(`Cashier: ${cashierName}`, LINE_WIDTH) + "\n";
-    if (customerName) receipt += this.leftAlignText(`Customer: ${customerName}`, LINE_WIDTH) + "\n";
-    if (customerPhone) receipt += this.leftAlignText(`Phone: ${customerPhone}`, LINE_WIDTH) + "\n";
-
+    // Header Details (PDF Style)
+    if (companyAddress) receipt += `<C>${companyAddress}</C>\n`;
+    if (companyNTN) receipt += `<C>NTN: ${companyNTN}</C>\n`;
+    
     receipt += DASH + "\n";
-    receipt += this.formatItemsHeader(LINE_WIDTH);
+    receipt += "<C><B>SALE INVOICE</B></C>\n";
+    receipt += DASH + "\n";
 
+    // Info Section
+    receipt += `Invoice: ${invoiceNo}\n`;
+    receipt += `Cashier: ${cashierName || ""}\n`;
+    receipt += `Customer: ${customerName || "Walk-in"}\n`;
+    if (customerPhone) receipt += `Phone: ${customerPhone}\n`;
+    receipt += `Date: ${dateTime}\n`;
+    receipt += DASH + "\n";
+
+    // Table Header (Matches PDF: S# Item Qty Rate Total)
+    // Layout: 2(S#) 10(Item) 4(Qty) 7(Rate) 9(Total) = 32
+    receipt += "S# Item      Qty  Rate   Total\n";
+    receipt += DASH + "\n";
+
+    // Items Loop
     if (items && items.length > 0) {
-      items.forEach((item) => {
-        receipt += this.formatItemLine(item, LINE_WIDTH);
+      items.forEach((item, index) => {
+        const sNo = String(index + 1).padEnd(2);
+        const name = (item.item_name || "Item").substring(0, 9).padEnd(10);
+        const qty = String(item.order_qty || 0).padStart(4);
+        const rate = parseFloat(item.unit_price || 0).toFixed(0).padStart(7);
+        const amt = parseFloat(item.amount || 0).toFixed(0).padStart(9);
+        
+        receipt += `${sNo}${name}${qty}${rate}${amt}\n`;
       });
     }
 
     receipt += DASH + "\n";
 
-    receipt += this.rightAlignText(`Subtotal: Rs ${subtotal.toFixed(2)}`, LINE_WIDTH) + "\n";
-    if (tax > 0) receipt += this.rightAlignText(`Tax: Rs ${tax.toFixed(2)}`, LINE_WIDTH) + "\n";
-    if (discount > 0) receipt += this.rightAlignText(`Discount: Rs ${discount.toFixed(2)}`, LINE_WIDTH) + "\n";
+    // Totals Section (Mirroring PDF table)
+    receipt += this.rightAlignText(`Subtotal: ${subtotal.toFixed(2)}`, LINE_WIDTH) + "\n";
+    receipt += this.rightAlignText(`Tax: ${(tax || 0).toFixed(2)}`, LINE_WIDTH) + "\n";
+    receipt += this.rightAlignText(`Discount: ${(discount || 0).toFixed(2)}`, LINE_WIDTH) + "\n";
+    receipt += DASH + "\n";
+    receipt += this.rightAlignText(`<B>TOTAL: Rs ${total.toFixed(2)}</B>`, LINE_WIDTH) + "\n";
+    receipt += DASH + "\n";
 
-    receipt += SEPARATOR + "\n";
-    receipt += this.rightAlignText(`TOTAL: Rs ${total.toFixed(2)}`, LINE_WIDTH) + "\n";
-    receipt += SEPARATOR + "\n";
-
-    if (footer) receipt += this.centerText(footer, LINE_WIDTH) + "\n";
-
-    receipt += this.centerText("Thank You!", LINE_WIDTH) + "\n";
+    // Footer Disclaimer (Mirroring PDF exactly)
+    receipt += "<C>Thank You For Shopping!</C>\n";
+    receipt += "<C>No Return / No Exchange For Frozen</C>\n";
+    receipt += "<C>No Refund Without Receipt</C>\n";
+    receipt += DASH + "\n";
 
     return receipt;
   }
 
+  // rightAlignText(text, width) {
+  //   // Remove tags for calculation if they exist
+  //   const cleanText = text.replace(/<[^>]*>/g, "");
+  //   const pad = Math.max(0, width - cleanText.length);
+  //   return " ".repeat(pad) + text;
+  // }
   centerText(text, width) {
     const pad = Math.max(0, Math.floor((width - text.length) / 2));
     return " ".repeat(pad) + text;

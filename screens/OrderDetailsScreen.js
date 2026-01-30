@@ -309,53 +309,126 @@ useEffect(() => {
   /**
    * Handle printing via Bluetooth thermal printer
    */
-  const handleBluetoothPrint = async () => {
-    if (!selectedDevice) {
-      Alert.alert("Error", "Please select and connect to a printer first");
-      return;
+  // const handleBluetoothPrint = async () => {
+  //   if (!selectedDevice) {
+  //     Alert.alert("Error", "Please select and connect to a printer first");
+  //     return;
+  //   }
+
+  //   setIsPrinting(true);
+  //   setPrintError(null);
+
+  //   try {
+  //     const receiptData = {
+  //       header: "AXON ERP",
+  //       invoiceNo: orderNo || "N/A",
+  //       dateTime: new Date().toLocaleString(),
+  //       customerName: customerName,
+  //       customerPhone: customerPhone || "N/A",
+  //       cashierName: cashierName,
+  //       items: details.map((item) => ({
+  //         item_name: item.item_name,
+  //         order_qty: item.order_qty,
+  //         unit_price: item.unit_price,
+  //         amount: item.amount,
+  //       })),
+  //       subtotal: totalAmount,
+  //       tax: 0,
+  //       discount: 0,
+  //       total: totalAmount,
+  //       footer: "Thank you for your purchase!",
+  //     };
+
+  //     // Ensure connected then print using helper
+  //     if (!bluetoothPrinter.isConnectedDevice()) {
+  //       await bluetoothPrinter.connectToDevice(selectedDevice.address, selectedDevice.name);
+  //     }
+
+  //     await bluetoothPrinter.printReceipt(receiptData);
+
+  //     setShowPrintModal(false);
+  //     Alert.alert("Success", "Receipt printed successfully!");
+  //   } catch (error) {
+  //     console.error("Print error:", error);
+  //     setPrintError("Print failed: " + error.message);
+  //     Alert.alert("Print Error", error.message || "Failed to print receipt");
+  //   } finally {
+  //     setIsPrinting(false);
+  //   }
+  // };
+
+
+  // ... (existing imports)
+
+/**
+ * Handle printing via Bluetooth thermal printer
+ */
+const handleBluetoothPrint = async () => {
+  if (!selectedDevice) {
+    Alert.alert("Error", "Please select and connect to a printer first");
+    return;
+  }
+
+  setIsPrinting(true);
+  setPrintError(null);
+
+  try {
+    // 1. Fetch Config for Logo, Address, and NTN
+    const config = await getQRConfig();
+    
+    // 2. Prepare receipt data matching your new thermal layout
+    const receiptData = {
+      // Company Info
+      companyName: "AXON ERP", // Default or from config
+      companyAddress: config?.company_address || "Faisalabad, Pakistan",
+      companyNTN: config?.company_ntn_number || "N/A",
+      
+      // Order Info
+      invoiceNo: details[0]?.order_no || orderNo || "N/A",
+      dateTime: new Date().toLocaleString(),
+      cashierName: config?.name || cashierName,
+      
+      // Customer Info
+      customerName: details[0]?.customer_name || customerName || "Walk-in",
+      customerPhone: details[0]?.customer_phone || customerPhone || "N/A",
+      
+      // Items (Mapping keys to match the printer helper)
+      items: details.map((item) => ({
+        item_name: item.item_name,
+        order_qty: item.order_qty,
+        unit_price: item.unit_price,
+        amount: item.amount,
+      })),
+      
+      // Totals
+      subtotal: totalAmount,
+      tax: 0,
+      discount: 0,
+      total: totalAmount,
+      footer: "Thank you for shopping!",
+    };
+
+    // 3. Get the Logo (Base64)
+    const logoBase64 = config?.company_logo || null;
+
+    // 4. Ensure connection and print
+    if (!bluetoothPrinter.isConnectedDevice()) {
+      await bluetoothPrinter.connectToDevice(selectedDevice.address, selectedDevice.name);
     }
 
-    setIsPrinting(true);
-    setPrintError(null);
+    // Call helper with both data and logo
+    await bluetoothPrinter.printReceipt(receiptData, logoBase64);
 
-    try {
-      const receiptData = {
-        header: "AXON ERP",
-        invoiceNo: orderNo || "N/A",
-        dateTime: new Date().toLocaleString(),
-        customerName: customerName,
-        customerPhone: customerPhone || "N/A",
-        cashierName: cashierName,
-        items: details.map((item) => ({
-          item_name: item.item_name,
-          order_qty: item.order_qty,
-          unit_price: item.unit_price,
-          amount: item.amount,
-        })),
-        subtotal: totalAmount,
-        tax: 0,
-        discount: 0,
-        total: totalAmount,
-        footer: "Thank you for your purchase!",
-      };
-
-      // Ensure connected then print using helper
-      if (!bluetoothPrinter.isConnectedDevice()) {
-        await bluetoothPrinter.connectToDevice(selectedDevice.address, selectedDevice.name);
-      }
-
-      await bluetoothPrinter.printReceipt(receiptData);
-
-      setShowPrintModal(false);
-      Alert.alert("Success", "Receipt printed successfully!");
-    } catch (error) {
-      console.error("Print error:", error);
-      setPrintError("Print failed: " + error.message);
-      Alert.alert("Print Error", error.message || "Failed to print receipt");
-    } finally {
-      setIsPrinting(false);
-    }
-  };
+    setShowPrintModal(false);
+    Alert.alert("Success", "Receipt printed successfully!");
+  } catch (error) {
+    console.error("Print error:", error);
+    setPrintError("Print failed: " + error.message);
+    Alert.alert("Print Error", error.message || "Failed to print receipt");
+  } finally {
+    setIsPrinting(false);
+  }
+};
 
   /**
    * Handle PDF print (existing functionality)
@@ -660,7 +733,7 @@ const handlePrintInvoice = async () => {
               <View style={styles.divider} />
 
               {/* PDF Print Option */}
-              <View style={styles.printOption}>
+              {/* <View style={styles.printOption}>
                 <Text style={styles.optionTitle}>📄 Print as PDF</Text>
                 <Text style={styles.optionDesc}>
                   Print using system printer or save as PDF
@@ -671,7 +744,7 @@ const handlePrintInvoice = async () => {
                 >
                   <Text style={styles.printActionText}>Print PDF</Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
             </ScrollView>
           </View>
         </View>
@@ -861,6 +934,30 @@ const styles = StyleSheet.create({
   marginTop: 12,
 },
 
+connectedDevice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  connectedText: {
+    color: '#2E7D32',
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  rescanBtn: {
+    marginTop: 15,
+    padding: 12,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  rescanBtnText: {
+    color: '#2954E5',
+    fontWeight: '600',
+  },
   // Modal styles for Bluetooth printer
   modalContainer: {
     flex: 1,
