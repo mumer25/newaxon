@@ -26,7 +26,6 @@ import {
 import { Plus, Minus, X } from "lucide-react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Print from "expo-print";
-import ThermalPrinter from "react-native-thermal-receipt-printer";
 import bluetoothPrinter from "../utils/bluetoothPrinter";
 
 export default function OrderDetailsScreen({ navigation, route }) {
@@ -246,11 +245,11 @@ useEffect(() => {
 
       console.log("Permissions granted, scanning for devices...");
       
-      // Get available devices (includes paired devices)
-      const devices = await ThermalPrinter.getBondedDevices();
-      
+      // Get available devices (includes paired and scanned devices)
+      const devices = await bluetoothPrinter.getAvailableDevices();
+
       console.log("Found devices:", devices);
-      
+
       setAvailableDevices(devices || []);
 
       if (!devices || devices.length === 0) {
@@ -294,7 +293,7 @@ useEffect(() => {
     setPrintError(null);
     try {
       console.log(`Attempting to connect to ${device.name}...`);
-      await ThermalPrinter.connectPrinter(device.address);
+      await bluetoothPrinter.connectToDevice(device.address, device.name);
       setSelectedDevice(device);
       console.log("✓ Connected successfully");
       Alert.alert("Success", `Connected to ${device.name}`);
@@ -340,11 +339,12 @@ useEffect(() => {
         footer: "Thank you for your purchase!",
       };
 
-      // Print using react-native-thermal-receipt-printer
-      await ThermalPrinter.printBluetooth(
-        selectedDevice.address,
-        receiptData
-      );
+      // Ensure connected then print using helper
+      if (!bluetoothPrinter.isConnectedDevice()) {
+        await bluetoothPrinter.connectToDevice(selectedDevice.address, selectedDevice.name);
+      }
+
+      await bluetoothPrinter.printReceipt(receiptData);
 
       setShowPrintModal(false);
       Alert.alert("Success", "Receipt printed successfully!");

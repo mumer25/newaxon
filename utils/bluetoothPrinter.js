@@ -2,9 +2,11 @@ import { Platform, PermissionsAndroid, ToastAndroid } from "react-native";
 
 let ThermalPrinter = null;
 try {
-  ThermalPrinter = require("react-native-thermal-receipt-printer").default;
+  // BLEPrinter is for Bluetooth (BLE) thermal printers
+  const { BLEPrinter } = require("react-native-thermal-receipt-printer");
+  ThermalPrinter = BLEPrinter;
 } catch (e) {
-  console.warn("ThermalPrinter module not available yet");
+  console.warn("ThermalPrinter module not available:", e && e.message);
 }
 
 class BluetoothThermalPrinter {
@@ -45,24 +47,56 @@ class BluetoothThermalPrinter {
 
   // Get paired and scanned devices
   async getAvailableDevices() {
-    if (!ThermalPrinter) return [];
+    if (!ThermalPrinter) {
+      console.warn("ThermalPrinter native module not available when scanning for devices");
+      return [];
+    }
 
     let devices = [];
 
     try {
-      if (ThermalPrinter.getBondedDevices) {
-        const bondedDevices = await ThermalPrinter.getBondedDevices();
-        devices = bondedDevices || [];
+      console.log("ThermalPrinter available methods:", Object.keys(ThermalPrinter));
+
+      // Initialize BLEPrinter first if init exists
+      if (typeof ThermalPrinter.init === "function") {
+        try {
+          console.log("Initializing BLEPrinter...");
+          await this._promiseWithTimeout(ThermalPrinter.init(), 5000, "BLEPrinter.init");
+          console.log("BLEPrinter initialized successfully");
+        } catch (err) {
+          console.warn("Error initializing BLEPrinter:", err);
+        }
       }
 
-      if (ThermalPrinter.getBluetoothDevices) {
-        const scannedDevices = await ThermalPrinter.getBluetoothDevices();
-        if (scannedDevices && scannedDevices.length > 0) {
-          scannedDevices.forEach((d) => {
-            if (!devices.find((dev) => dev.address === d.address)) {
-              devices.push(d);
-            }
-          });
+      // Call getDeviceList which should return paired/scanned devices
+      if (typeof ThermalPrinter.getDeviceList === "function") {
+        try {
+          console.log("Calling ThermalPrinter.getDeviceList()");
+          const result = await this._promiseWithTimeout(
+            ThermalPrinter.getDeviceList(),
+            8000,
+            "getDeviceList"
+          );
+          console.log("Result from getDeviceList:", result);
+          if (Array.isArray(result) && result.length > 0) {
+            // Normalize device fields returned by the native library
+            devices = result.map((dev) => ({
+              // Support both field name formats
+              address: dev.address || dev.inner_mac_address || dev.mac_address,
+              name: dev.name || dev.device_name,
+              // Keep original fields for reference
+              ...dev,
+            }));
+            console.log("Normalized devices:", devices);
+          } else if (result && Array.isArray(result.devices)) {
+            devices = result.devices.map((dev) => ({
+              address: dev.address || dev.inner_mac_address || dev.mac_address,
+              name: dev.name || dev.device_name,
+              ...dev,
+            }));
+          }
+        } catch (err) {
+          console.warn("Error calling getDeviceList:", err);
         }
       }
     } catch (e) {
@@ -70,6 +104,29 @@ class BluetoothThermalPrinter {
     }
 
     return devices;
+  }
+
+  // Helper to wrap promises with timeout
+  async _promiseWithTimeout(promise, timeoutMs, methodName) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`${methodName} timed out after ${timeoutMs}ms`)), timeoutMs)
+      ),
+    ]);
+  }
+
+  // Expose module availability for runtime checks
+  isModuleAvailable() {
+    return !!ThermalPrinter;
+  }
+
+  getModuleMethods() {
+    try {
+      return ThermalPrinter ? Object.keys(ThermalPrinter) : [];
+    } catch (e) {
+      return [];
+    }
   }
 
   // Connect to printer
@@ -82,13 +139,31 @@ class BluetoothThermalPrinter {
     }
 
     try {
+      console.log(`Attempting to connect to ${name} (${address})...`);
+      
       if (ThermalPrinter.connectPrinter) {
-        await ThermalPrinter.connectPrinter(address);
+        // connectPrinter expects (address, timeout) in some versions
+        // Try with timeout first, fallback to address only
+        try {
+          await this._promiseWithTimeout(
+            ThermalPrinter.connectPrinter(address, 10000),
+            15000,
+            `connectPrinter(${address})`
+          );
+        } catch (err) {
+          // If the above fails, try without timeout
+          console.warn("Retrying connection without timeout...");
+          await this._promiseWithTimeout(
+            ThermalPrinter.connectPrinter(address),
+            15000,
+            `connectPrinter(${address})`
+          );
+        }
       }
 
       this.isConnected = true;
       this.printerDevice = { address, name };
-      console.log(`Connected to ${name}`);
+      console.log(`✓ Connected to ${name}`);
       return true;
     } catch (error) {
       this.isConnected = false;
