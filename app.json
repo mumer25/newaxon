@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Axon Order Booking",
+    "slug": "axon-erp",
+    "version": "1.0.9",
+    "orientation": "portrait",
+    "icon": "./assets/Logo/Logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/Logo/Logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.axonerp.app",
+      "versionCode": 10,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Logo/Logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCpXDv4FldOMug08hNGFwAn7fGcviuLHF4"
+        }
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow the app to use your location for live tracking."
+        }
+      ],
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "23532053-a62c-40e2-becf-7234a0ededf5"
+      }
+    }
+  }
+}
