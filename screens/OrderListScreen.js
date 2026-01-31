@@ -331,7 +331,7 @@ const scanBluetoothDevices = async () => {
     } else {
       if (devices.length === 1) {
         setSelectedDevice(devices[0]);
-        Alert.alert("Success", `Found printer: ${devices[0].name}\n\nClick Connect to continue`);
+        // Alert.alert("Success", `Found printer: ${devices[0].name}\n\nClick Connect to continue`);
       }
     }
   } catch (error) {
@@ -1127,143 +1127,306 @@ barcode: {
 },
 
 // MODAL STYLES
-modalContainer: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "rgba(0, 0, 0, 0.7)",
-},
-modalContent: {
-  width: "90%",
-  backgroundColor: "#fff",
-  borderRadius: 10,
-  padding: 16,
-  elevation: 4,
-},
-modalHeader: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
-modalTitle: {
-  fontSize: 18,
-  fontWeight: "bold",
-},
-modalBody: {
-  marginTop: 10,
-},
-infoBox: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: "#e3f2fd",
-  padding: 10,
-  borderRadius: 8,
-  marginBottom: 12,
-},
-infoText: {
-  marginLeft: 8,
-  color: "#0d47a1",
-},
-printOption: {
-  marginBottom: 20,
-},
-optionTitle: {
-  fontSize: 16,
-  fontWeight: "600",
-  marginBottom: 8,
-},
-optionDesc: {
-  fontSize: 14,
-  color: "#666",
-  marginBottom: 12,
-},
-connectedDevice: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: "#e8f5e9",
-  padding: 10,
-  borderRadius: 8,
-  marginBottom: 12,
-},
-connectedText: {
-  marginLeft: 8,
-  fontWeight: "500",
-},
-deviceList: {
-  maxHeight: 200,
-},
-deviceItem: {
-  flexDirection: "row",
-  alignItems: "center",
-  padding: 12,
-  borderRadius: 8,
-  marginBottom: 8,
-  backgroundColor: "#f9f9f9",
-},
-deviceItemSelected: {
-  backgroundColor: "#e1f5fe",
-},
-deviceInfo: {
-  marginLeft: 10,
-  flex: 1,
-},
-deviceName: {
-  fontWeight: "500",
-},
-deviceAddress: {
-  fontSize: 12,
-  color: "#666",
-},
-loadingContainer: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  marginTop: 10,
-},
-loadingText: {
-  marginLeft: 8,
-  color: "#2954E5",
-},
-printActionBtn: {
-  backgroundColor: "#10B981",
-  padding: 12,
-  borderRadius: 8,
-  alignItems: "center",
-  marginTop: 10,
-},
-printActionText: {
-  color: "#fff",
-  fontWeight: "bold",
-},
-printingContainer: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  marginTop: 10,
-},
-printingText: {
-  marginLeft: 8,
-  color: "#2954E5",
-},
-divider: {
-  height: 1,
-  backgroundColor: "#ddd",
-  marginVertical: 10,
-},
-errorText: {
-  color: "#d32f2f",
-  fontSize: 14,
-  marginTop: 4,
-},
-rescanBtn: {
-  marginTop: 10,
-  padding: 10,
-  borderRadius: 8,
-  backgroundColor: "#e1f5fe",
-  alignItems: "center",
-},
-rescanBtnText: {
-  color: "#039be5",
-  fontWeight: "bold",
-},
+// modalContainer: {
+//   flex: 1,
+//   justifyContent: "center",
+//   alignItems: "center",
+//   backgroundColor: "rgba(0, 0, 0, 0.7)",
+// },
+// modalContent: {
+//   width: "90%",
+//   backgroundColor: "#fff",
+//   borderRadius: 10,
+//   padding: 16,
+//   elevation: 4,
+// },
+// modalHeader: {
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   alignItems: "center",
+// },
+// modalTitle: {
+//   fontSize: 18,
+//   fontWeight: "bold",
+// },
+// modalBody: {
+//   marginTop: 10,
+// },
+// infoBox: {
+//   flexDirection: "row",
+//   alignItems: "center",
+//   backgroundColor: "#e3f2fd",
+//   padding: 10,
+//   borderRadius: 8,
+//   marginBottom: 12,
+// },
+// infoText: {
+//   marginLeft: 8,
+//   color: "#0d47a1",
+// },
+// printOption: {
+//   marginBottom: 20,
+// },
+// optionTitle: {
+//   fontSize: 16,
+//   fontWeight: "600",
+//   marginBottom: 8,
+// },
+// optionDesc: {
+//   fontSize: 14,
+//   color: "#666",
+//   marginBottom: 12,
+// },
+// connectedDevice: {
+//   flexDirection: "row",
+//   alignItems: "center",
+//   backgroundColor: "#e8f5e9",
+//   padding: 10,
+//   borderRadius: 8,
+//   marginBottom: 12,
+// },
+// connectedText: {
+//   marginLeft: 8,
+//   fontWeight: "500",
+// },
+// deviceList: {
+//   maxHeight: 200,
+// },
+// deviceItem: {
+//   flexDirection: "row",
+//   alignItems: "center",
+//   padding: 12,
+//   borderRadius: 8,
+//   marginBottom: 8,
+//   backgroundColor: "#f9f9f9",
+// },
+// deviceItemSelected: {
+//   backgroundColor: "#e1f5fe",
+// },
+// deviceInfo: {
+//   marginLeft: 10,
+//   flex: 1,
+// },
+// deviceName: {
+//   fontWeight: "500",
+// },
+// deviceAddress: {
+//   fontSize: 12,
+//   color: "#666",
+// },
+// loadingContainer: {
+//   flexDirection: "row",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   marginTop: 10,
+// },
+// loadingText: {
+//   marginLeft: 8,
+//   color: "#2954E5",
+// },
+// printActionBtn: {
+//   backgroundColor: "#10B981",
+//   padding: 12,
+//   borderRadius: 8,
+//   alignItems: "center",
+//   marginTop: 10,
+// },
+// printActionText: {
+//   color: "#fff",
+//   fontWeight: "bold",
+// },
+// printingContainer: {
+//   flexDirection: "row",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   marginTop: 10,
+// },
+// printingText: {
+//   marginLeft: 8,
+//   color: "#2954E5",
+// },
+// divider: {
+//   height: 1,
+//   backgroundColor: "#ddd",
+//   marginVertical: 10,
+// },
+// errorText: {
+//   color: "#d32f2f",
+//   fontSize: 14,
+//   marginTop: 4,
+// },
+// rescanBtn: {
+//   marginTop: 10,
+//   padding: 10,
+//   borderRadius: 8,
+//   backgroundColor: "#e1f5fe",
+//   alignItems: "center",
+// },
+// rescanBtnText: {
+//   color: "#039be5",
+//   fontWeight: "bold",
+// },
+
+ modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "80%",
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  modalBody: {
+    padding: 16,
+  },
+  infoBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e3f2fd",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#2954E5",
+  },
+  infoText: {
+    marginLeft: 12,
+    fontSize: 13,
+    color: "#1565c0",
+    fontWeight: "500",
+    flex: 1,
+  },
+  printOption: {
+    marginBottom: 20,
+  },
+  optionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 8,
+  },
+  optionDesc: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 12,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
+    fontSize: 14,
+  },
+  printingContainer: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  printingText: {
+    marginTop: 10,
+    color: "#2954E5",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  deviceList: {
+    maxHeight: 200,
+    marginBottom: 12,
+  },
+  deviceItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  deviceItemSelected: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#2954E5",
+  },
+  deviceInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  deviceName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
+  deviceAddress: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
+  },
+  connectedDevice: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e8f5e9",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+  },
+  connectedText: {
+    marginLeft: 10,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "green",
+  },
+  rescanBtn: {
+    backgroundColor: "#2954E5",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  rescanBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  printActionBtn: {
+    backgroundColor: "#2954E5",
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  printActionText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  errorText: {
+    color: "#d32f2f",
+    fontSize: 14,
+    textAlign: "center",
+    marginVertical: 12,
+  },
+  // divider: {
+  //   height: 1,
+  //   backgroundColor: "#e0e0e0",
+  //   marginVertical: 20,
+  // },
 });

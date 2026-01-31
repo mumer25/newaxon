@@ -1116,11 +1116,11 @@ connectedDevice: {
     textAlign: "center",
     marginVertical: 12,
   },
-  divider: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginVertical: 20,
-  },
+  // divider: {
+  //   height: 1,
+  //   backgroundColor: "#e0e0e0",
+  //   marginVertical: 20,
+  // },
 }); 
 
 
