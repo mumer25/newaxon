@@ -266,7 +266,7 @@ useEffect(() => {
         // Auto-select if only one device
         if (devices.length === 1) {
           setSelectedDevice(devices[0]);
-          Alert.alert("Success", `Found printer: ${devices[0].name}\n\nClick Connect to continue`);
+          // Alert.alert("Success", `Found printer: ${devices[0].name}\n\nClick Connect to continue`);
         }
       }
     } catch (error) {

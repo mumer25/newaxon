@@ -291,7 +291,7 @@ class BluetoothThermalPrinter {
     receipt += this.rightAlignText(`Tax: ${(tax || 0).toFixed(2)}`, LINE_WIDTH) + "\n";
     receipt += this.rightAlignText(`Discount: ${(discount || 0).toFixed(2)}`, LINE_WIDTH) + "\n";
     receipt += DASH + "\n";
-    receipt += this.rightAlignText(`<B>TOTAL: Rs ${total.toFixed(2)}</B>`, LINE_WIDTH) + "\n";
+    receipt += this.rightAlignText(`TOTAL: Rs ${total.toFixed(2)}`, LINE_WIDTH) + "\n";
     receipt += DASH + "\n";
 
     // Footer Disclaimer (Mirroring PDF exactly)
